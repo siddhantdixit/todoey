@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:todoey_flutter/add_task.dart';
+import 'package:todoey_flutter/models/DatabaseHelper.dart';
 import 'package:todoey_flutter/task_list.dart';
 
 import 'models/task_item.dart';
@@ -9,29 +10,72 @@ import 'models/task_item.dart';
 final bgColor = Color(0xFF63C9FE);
 
 class TaskScreen extends StatefulWidget {
-
   @override
   _TaskScreenState createState() => _TaskScreenState();
 }
 
 class _TaskScreenState extends State<TaskScreen> {
+  List<TaskItem> myTasks = [];
+
+  bool isLoading = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    noOfTasks = myTasks.length;
+
+    getAllNotes();
+  }
+
+  void printMyTasks()
+  {
+    for(TaskItem x in this.myTasks)
+      {
+        print("\n\n");
+        print(x.id);
+        print(x.taskString);
+        print(x.isDone);
+      }
+  }
+
+  Future getAllNotes() async {
+    // setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+    });
+
+    this.myTasks = await TaskDatabase.instance.readAllNotes();
+
+    // print(myTasks);
+    printMyTasks();
+
+
+    setState(() {
+      this.noOfTasks = myTasks.length;
+      isLoading = false;
+    });
+    // this.notes = await NotesDatabase.instance.readAllNotes();
+
+    // setState(() => isLoading = false);
   }
 
   int noOfTasks = 0;
 
-  List<TaskItem>  myTasks = [
-    TaskItem(taskString: "Buy Mango"),
-    TaskItem(taskString: "Buy People"),
-    TaskItem(taskString: "Buy Choco"),
-  ];
+  // List<TaskItem>  myTasks = [
+  //   TaskItem(taskString: "Buy Mango"),
+  //   TaskItem(taskString: "Buy People"),
+  //   TaskItem(taskString: "Buy Choco"),
+  // ];
 
   bool isDone = false;
+
+  Future<TaskItem> addNote(String taskData) async {
+    final note = TaskItem(
+      taskString: taskData,
+      isDone: false,
+    );
+    return await TaskDatabase.instance.create(note);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,14 +89,14 @@ class _TaskScreenState extends State<TaskScreen> {
                 child: Container(
                     padding: EdgeInsets.only(
                         bottom: MediaQuery.of(context).viewInsets.bottom),
-                    child: AddTaskScreen((newTaskTitle){
+                    child: AddTaskScreen((newTaskTitle) async {
                       print(newTaskTitle);
+                      TaskItem newTsk = await addNote(newTaskTitle);
                       setState(() {
-                        myTasks.add(TaskItem(taskString: newTaskTitle));
+                        myTasks.add(newTsk);
+                        // addNote(newTaskTitle);
                       });
-                    })
-                )
-            ),
+                    }))),
           );
         },
         backgroundColor: bgColor,
@@ -99,27 +143,32 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
             Expanded(
               flex: 2,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20.0),
-                      topRight: Radius.circular(20.0)),
-                  // borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  color: Colors.white,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 30.0, vertical: 30.0),
-                  child: TaskList(
-                    myTasks: myTasks,
-                    taskUpdate: (){
-                      setState(() {
-
-                      });
-                    },
-                  ),
-                ),
-              ),
+              child: (isLoading == true)
+                  ? Container(
+                      child: Text(
+                        'Loading ... ',
+                        style: TextStyle(fontSize: 20, color: Colors.white),
+                      ),
+                      alignment: Alignment.center,
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20.0),
+                            topRight: Radius.circular(20.0)),
+                        // borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                        color: Colors.white,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(30.0, 20.0, 30.0, 80.0),
+                        child: TaskList(
+                          myTasks: myTasks,
+                          taskUpdate: () {
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),

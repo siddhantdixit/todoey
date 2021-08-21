@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:todoey_flutter/models/task_item.dart';
 import 'package:todoey_flutter/task_tile.dart';
 
+import 'models/DatabaseHelper.dart';
+
 class TaskList extends StatefulWidget {
   TaskList({required this.myTasks, required this.taskUpdate});
 
@@ -49,6 +51,9 @@ class _TaskListState extends State<TaskList> {
                 widget.myTasks.remove(deleteTask);
                 widget.taskUpdate();
               });
+
+              TaskDatabase.instance.delete(deleteTask.id);
+
             },
           );
         },

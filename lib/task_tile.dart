@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:todoey_flutter/models/DatabaseHelper.dart';
 import 'package:todoey_flutter/models/task_item.dart';
 
 class TaskTile extends StatefulWidget {
@@ -39,7 +40,16 @@ class _TaskTileState extends State<TaskTile> {
             setState(() {
               widget.myTsk.isDone = mych!;
             });
+            // updateNote(widget.myTsk.id);
+            print("ID of the object = ${widget.myTsk.id}");
+            TaskDatabase.instance.setNoteDone(widget.myTsk.id, widget.myTsk.isDone);
           }),
     );
   }
+
+
+  // Future updateNote(int Noteid) async {
+  //   await TaskDatabase.instance.setNoteDone(myNoteid, widget.myTsk.isDone);
+  // }
 }
+
